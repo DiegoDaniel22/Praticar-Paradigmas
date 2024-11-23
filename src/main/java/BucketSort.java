@@ -1,45 +1,85 @@
+import org.json.JSONArray;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 
 public class BucketSort {
-    public static void bucketSort(float[] array) {
+
+    private static long comparacoes = 0;
+    private static long trocas = 0;
+
+    public static void bucketSort(int[] array) {
         int n = array.length;
         if (n <= 0) return;
 
-        ArrayList<Float>[] buckets = new ArrayList[n];
-        for (int i = 0; i < n; i++) {
+        int maxValue = Arrays.stream(array).max().orElse(Integer.MAX_VALUE);
+        int minValue = Arrays.stream(array).min().orElse(Integer.MIN_VALUE);
+
+        int bucketCount = (maxValue - minValue) / n + 1;
+        ArrayList<Integer>[] buckets = new ArrayList[bucketCount];
+
+        for (int i = 0; i < bucketCount; i++) {
             buckets[i] = new ArrayList<>();
         }
 
-        for (float num : array) {
-            int bucketIndex = (int) (num * n); // Mapeia o número ao índice do balde
+        for (int num : array) {
+            int bucketIndex = (num - minValue) * (bucketCount - 1) / (maxValue - minValue);
+            comparacoes++;
             buckets[bucketIndex].add(num);
         }
 
-        for (ArrayList<Float> bucket : buckets) {
-            Collections.sort(bucket);
-        }
-
         int index = 0;
-        for (ArrayList<Float> bucket : buckets) {
-            for (float num : bucket) {
+        for (ArrayList<Integer> bucket : buckets) {
+            bucket.sort(Integer::compareTo);
+            for (int num : bucket) {
+                comparacoes++;
+                if (array[index] != num) {
+                    trocas++;
+                }
                 array[index++] = num;
             }
         }
     }
 
     public static void main(String[] args) {
-        float[] array = {0.42f, 0.32f, 0.23f, 0.52f, 0.25f, 0.47f, 0.51f};
-        System.out.println("Original Array: ");
-        for (float num : array) {
-            System.out.print(num + " ");
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("src/jsons/milOrdenado.json"));
+
+            int[] numbers = readJsonArray(reader);
+
+            long startTime = System.nanoTime();
+
+            bucketSort(numbers);
+
+            long endTime = System.nanoTime();
+            long duration = endTime - startTime;
+
+            System.out.println("Sorted Array: " + Arrays.toString(numbers));
+            System.out.println("Total de comparações: " + comparacoes);
+            System.out.println("Total de trocas: " + trocas);
+            System.out.println("Tempo de execução: " + duration + " nanosegundos");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static int[] readJsonArray(BufferedReader reader) throws IOException {
+        StringBuilder jsonContent = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            jsonContent.append(line);
         }
 
-        bucketSort(array);
+        JSONArray jsonArray = new JSONArray(jsonContent.toString());
 
-        System.out.println("\nSorted Array: ");
-        for (float num : array) {
-            System.out.print(num + " ");
+        int[] numbers = new int[jsonArray.length()];
+        for (int i = 0; i < jsonArray.length(); i++) {
+            numbers[i] = jsonArray.getInt(i);
         }
+
+        return numbers;
     }
 }

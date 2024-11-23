@@ -1,19 +1,23 @@
 import org.json.JSONArray;
-import org.json.JSONObject;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 
 public class BubbleSort {
 
+    private static long comparacoes = 0;
+    private static long trocas = 0;
+
     public static void bubbleSort(int[] array) {
         int n = array.length;
         for (int i = 0; i < n - 1; i++) {
             for (int j = 0; j < n - i - 1; j++) {
+                comparacoes++;
                 if (array[j] > array[j + 1]) {
                     int temp = array[j];
                     array[j] = array[j + 1];
                     array[j + 1] = temp;
+                    trocas++;
                 }
             }
         }
@@ -21,18 +25,21 @@ public class BubbleSort {
 
     public static void main(String[] args) {
         try {
-            // Lê o arquivo JSON e extrai o array de números
-            FileReader reader = new FileReader("numeros.json");
+            FileReader reader = new FileReader("src/jsons/milOrdenado.json");
+
             int[] numbers = readJsonArray(reader);
 
-            // Exibe o array original
-            System.out.println("Original Array: " + Arrays.toString(numbers));
+            long startTime = System.nanoTime();
 
-            // Ordena o array usando Bubble Sort
             bubbleSort(numbers);
 
-            // Exibe o array ordenado
+            long endTime = System.nanoTime();
+            long duration = endTime - startTime;
+
             System.out.println("Sorted Array: " + Arrays.toString(numbers));
+            System.out.println("Total de comparações: " + comparacoes);
+            System.out.println("Total de trocas: " + trocas);
+            System.out.println("Tempo de execução: " + duration + " nanosegundos");
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,7 +54,6 @@ public class BubbleSort {
         }
         JSONArray jsonArray = new JSONArray(jsonContent.toString());
 
-        // Converte o JSONArray em um array de inteiros
         int[] numbers = new int[jsonArray.length()];
         for (int i = 0; i < jsonArray.length(); i++) {
             numbers[i] = jsonArray.getInt(i);
